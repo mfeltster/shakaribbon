@@ -335,9 +335,9 @@ footer .sub button{background:var(--red);border:2px solid var(--red);color:var(-
       <small>© 2026 Fizzle · @fuhk_wot · Built from the road, somewhere between the jungle and the dealership.</small>
     </div>
     <div class="sub">
-      <input type="email" placeholder="your@email.com">
-      <button>Keep Me Posted</button>
-      <small>Story drops, sticker news, no spam, no guru talk.</small>
+      <input type="email" id="sub-email" placeholder="your@email.com" autocomplete="email">
+      <button type="button" id="sub-go">Keep Me Posted</button>
+      <small id="sub-note">Story drops, sticker news, no spam, no guru talk.</small>
     </div>
   </div>
 </footer>
@@ -365,6 +365,24 @@ footer .sub button{background:var(--red);border:2px solid var(--red);color:var(-
     card.addEventListener('mouseleave',function(){paint(locked)});
     paint('Black');
   });
+})();
+</script>
+
+<script>
+(function(){
+  var f=document.getElementById('sub-email'), b=document.getElementById('sub-go'), n=document.getElementById('sub-note');
+  if(!f||!b) return;
+  var original=n?n.textContent:'';
+  function go(){
+    var v=(f.value||'').trim();
+    if(v.indexOf('@')<1||v.indexOf('.')<3){ if(n){n.textContent='Need a real email address.';} f.focus(); return; }
+    var body='Add me to the list.%0D%0A%0D%0A'+encodeURIComponent(v);
+    window.location.href='mailto:mfeltster@gmail.com?subject='+encodeURIComponent('Keep me posted — Shaka Ribbon')+'&body='+body;
+    if(n){ n.textContent='Opening your mail app — just hit send.'; }
+    setTimeout(function(){ if(n) n.textContent=original; }, 8000);
+  }
+  b.addEventListener('click',go);
+  f.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
 })();
 </script>
 </body>
