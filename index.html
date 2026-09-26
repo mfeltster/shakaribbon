@@ -368,18 +368,33 @@ footer .sub button{background:var(--red);border:2px solid var(--red);color:var(-
 })();
 </script>
 
+
+
 <script>
 (function(){
-  var f=document.getElementById('sub-email'), b=document.getElementById('sub-go'), n=document.getElementById('sub-note');
+  var f=document.getElementById('sub-email'),
+      b=document.getElementById('sub-go'),
+      n=document.getElementById('sub-note');
   if(!f||!b) return;
+  var ENDPOINT='https://buttondown.com/api/emails/embed-subscribe/mfeltster';
   var original=n?n.textContent:'';
+  var busy=false;
+  function say(t){ if(n) n.textContent=t; }
+  function reset(){ setTimeout(function(){ say(original); },9000); }
   function go(){
+    if(busy) return;
     var v=(f.value||'').trim();
-    if(v.indexOf('@')<1||v.indexOf('.')<3){ if(n){n.textContent='Need a real email address.';} f.focus(); return; }
-    var body='Add me to the list.%0D%0A%0D%0A'+encodeURIComponent(v);
-    window.location.href='mailto:mfeltster@gmail.com?subject='+encodeURIComponent('Keep me posted — Shaka Ribbon')+'&body='+body;
-    if(n){ n.textContent='Opening your mail app — just hit send.'; }
-    setTimeout(function(){ if(n) n.textContent=original; }, 8000);
+    if(v.indexOf('@')<1||v.lastIndexOf('.')<v.indexOf('@')+2){ say('Need a real email address.'); f.focus(); return; }
+    busy=true; b.disabled=true; say('Signing you up…');
+    var body=new URLSearchParams(); body.append('email',v); body.append('embed','1');
+    fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:body})
+      .then(function(){
+        f.value=''; say('Check your email and confirm — that\u2019s it.');
+      })
+      .catch(function(){
+        say('Something broke. Try shakaribbon.com again in a minute.');
+      })
+      .then(function(){ busy=false; b.disabled=false; reset(); });
   }
   b.addEventListener('click',go);
   f.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
