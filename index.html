@@ -133,6 +133,11 @@ nav ul a:hover{color:var(--red);opacity:1}
 .buyrow .soon{font-family:'Anton',Impact,sans-serif;text-transform:uppercase;letter-spacing:.07em;
   font-size:.78rem;opacity:.35}
 .shopline{margin-top:auto;padding-top:14px;font-size:.78rem;opacity:.5;letter-spacing:.02em}
+.subdone{display:flex;align-items:flex-start;gap:12px;border:3px solid var(--paper);padding:16px 18px;background:rgba(255,255,255,.06)}
+.subdone .tick{font-family:'Anton',Impact,sans-serif;font-size:1.5rem;line-height:1;color:var(--red);flex:none}
+.subdone .h{font-family:'Anton',Impact,sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:1.05rem;margin:0 0 4px}
+.subdone .p{font-size:.85rem;opacity:.75;margin:0;line-height:1.45}
+.suberr{color:#ff9b91;font-weight:600}
 .card .btn{text-align:center;font-size:.9rem;padding:12px 0}
 .badge{position:absolute;top:12px;right:12px;background:var(--red);color:var(--paper);font-family:'Anton',Impact,sans-serif;
   font-size:.7rem;letter-spacing:.1em;padding:5px 10px;text-transform:uppercase}
@@ -376,28 +381,34 @@ footer .sub button{background:var(--red);border:2px solid var(--red);color:var(-
       b=document.getElementById('sub-go'),
       n=document.getElementById('sub-note');
   if(!f||!b) return;
+  var box=b.parentNode;
   var ENDPOINT='https://buttondown.com/api/emails/embed-subscribe/mfeltster';
   var original=n?n.textContent:'';
   var busy=false;
-  function say(t){ if(n) n.textContent=t; }
-  function reset(){ setTimeout(function(){ say(original); },9000); }
+  function err(t){ if(n){ n.textContent=t; n.className='suberr'; } }
+  function clearErr(){ if(n){ n.textContent=original; n.className=''; } }
+  function done(addr){
+    box.innerHTML='<div class="subdone"><div class="tick">&#10003;</div><div>'+
+      '<p class="h">Check your email</p>'+
+      '<p class="p">Sent to <b>'+addr.replace(/[<>&]/g,'')+'</b>. Click the confirm link and you\u2019re in. '+
+      'If it\u2019s not there in a minute, look in spam.</p></div></div>';
+  }
   function go(){
     if(busy) return;
     var v=(f.value||'').trim();
-    if(v.indexOf('@')<1||v.lastIndexOf('.')<v.indexOf('@')+2){ say('Need a real email address.'); f.focus(); return; }
-    busy=true; b.disabled=true; say('Signing you up…');
+    if(v.indexOf('@')<1||v.lastIndexOf('.')<v.indexOf('@')+2){ err('Need a real email address.'); f.focus(); return; }
+    busy=true; b.disabled=true; clearErr(); b.textContent='Sending\u2026';
     var body=new URLSearchParams(); body.append('email',v); body.append('embed','1');
     fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:body})
-      .then(function(){
-        f.value=''; say('Check your email and confirm — that\u2019s it.');
-      })
+      .then(function(){ done(v); })
       .catch(function(){
-        say('Something broke. Try shakaribbon.com again in a minute.');
-      })
-      .then(function(){ busy=false; b.disabled=false; reset(); });
+        busy=false; b.disabled=false; b.textContent='Keep Me Posted';
+        err('Didn\u2019t go through. Try again in a minute.');
+      });
   }
   b.addEventListener('click',go);
   f.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+  f.addEventListener('input',clearErr);
 })();
 </script>
 </body>
